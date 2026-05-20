@@ -80,7 +80,7 @@
 
             <div class="filter-field">
               <label for="f_equipe">Representante</label>
-              <input type="text" id="f_equipe" name="equipeVendas" autocomplete="on" />
+              <input type="text" id="f_equipe" readonly name="equipeVendas" autocomplete="on" />
             </div>
 
             <div class="filter-field">
@@ -242,6 +242,7 @@
               <option value="Z07">Tratativa de reclamação</option>
               <option value="Z08">Visitas Trade Marketing</option>
               <option value="Z09">Visitas às Fábricas (Portas Abertas)</option>
+              <option value="Z10">Evento no cliente</option>
             </select>
           </div>
 
@@ -379,6 +380,38 @@
     </div>
   </div>
   <!-- modal employees  -->
+
+  <!--modal salesGroup -->
+  <div id="representativesModal" class="horizon-modal hidden">
+    <div class="horizon-modal-content">
+
+      <div class="horizon-modal-header">
+        <span>Selecionar representante</span>
+        <button class="horizon-modal-close closeRepresentativesModal">✕</button>
+      </div>
+
+      <div class="employee-search-container">
+        <input type="text" id="representativeSearch" />
+      </div>
+
+      <div class="horizon-modal-body">
+        <table id="representativesTable" class="horizon-table">
+          <thead>
+            <tr>
+              <th class="employee-name-th">Nome</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div class="horizon-modal-footer">
+        <button class="horizon-btn closeRepresentativesModal">Fechar</button>
+      </div>
+
+    </div>
+  </div>
 
   </div>
 

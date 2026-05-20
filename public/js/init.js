@@ -1,5 +1,5 @@
 // public/js/init.js
-import { apiKey, state } from './config.js';
+import { state } from './config.js';
 
 export async function getSalesOffices() {
   const params = new URLSearchParams(window.location.search);
@@ -63,8 +63,9 @@ export async function loadCustomers(parameters) {
 
 export async function initApp() {
 
+  const { data } = await axios.get("/api/here/config");
 
-  state.platform = new H.service.Platform({ apikey: apiKey });
+  state.platform = new H.service.Platform({ apikey: data.apiKey });
   const defaultLayers = state.platform.createDefaultLayers();
 
   state.map = new H.Map(

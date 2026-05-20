@@ -28,7 +28,6 @@ function norm(v) {
     .replace(/[\u0300-\u036f]/g, '');
 }
 
-/** Pega valor do primeiro campo existente no objeto, entre várias opções */
 function getFirst(obj, keys = []) {
   for (const k of keys) {
     if (obj && obj[k] != null && obj[k] !== '') return obj[k];
@@ -48,6 +47,37 @@ export function getFiltersFromUI() {
     equipeVendas: document.getElementById('f_equipe')?.value?.trim() || '',
     pin: document.getElementById('f_pin')?.value || '',
   };
+}
+
+export function renderRepresentativesTable(list) {
+  const tbody = document.querySelector("#representativesTable tbody");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  list.forEach(rep => {
+    const repId =
+      rep.OrgUnitID || "";
+
+    const repName =
+      rep.OrgUnitName || "";
+
+    const tr = document.createElement("tr");
+
+    tr.innerHTML = `
+      <td class="employee-name">${repName}</td>
+      <td>
+        <button
+          class="select-representative"
+          data-id="${repId}"
+          data-name="${repName}">
+          Selecionar
+        </button>
+      </td>
+    `;
+
+    tbody.appendChild(tr);
+  });
 }
 
 

@@ -12,7 +12,7 @@ import {
   showPolygonActions
 } from './polygon.js';
 import { setupFiltersToggle } from './filters-toggle.js';
-import { applyFiltersAndRender, clearFilters, renderCustomers, toggleShowSelected } from './filters.js';
+import { applyFiltersAndRender, clearFilters, renderCustomers, toggleShowSelected, renderRepresentativesTable } from './filters.js';
 import { validateRouteForm } from './route-form-validate.js';
 import { showToast } from './util.js';
 import { deselectAllCustomers, getSelectedClients } from './customers.js';
@@ -119,7 +119,30 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await initApp()
 
-  await getSalesOffices().then((salesOffices) => {
+  async function loadRepresentatives(salesOffices) {
+    console.log("loadRepresentatives salesOffices: ", salesOffices);
+    if(!salesOffices) {
+      window._allRepresentatives = []
+    }
+
+    var orgs = salesOffices.offices ? salesOffices?.offices.map(office => office.OrgUnitID) : salesOffices?.map(office => office.OrgUnitID);
+    try {
+      const { data } = await axios.get("/api/representantes", {
+        params: {
+          salesOfficesIDs: orgs.join(',')
+        }
+      });
+
+      let representativeList = data || [];
+
+      window._allRepresentatives = representativeList;
+    } catch (error) {
+      console.log("Erro ao carregar representantes", error);
+      window._allRepresentatives = [];
+    }
+  }
+
+  await getSalesOffices().then(async (salesOffices) => {
     const btnOffices = document.getElementById("btnOffices");
 
     if (!salesOffices.haveOfficesByEmployee) {
@@ -131,6 +154,9 @@ document.addEventListener('DOMContentLoaded', async () => {
       : "Selecionar Escritórios";
 
     btnOffices.onclick = () => openOfficesModal(salesOffices.haveOfficesByEmployee, salesOffices.offices);
+    if(salesOffices.haveOfficesByEmployee) {
+      await loadRepresentatives(salesOffices.offices);
+    }
 
   }).catch((error) => {
     console.log('error', error)
@@ -258,6 +284,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     try {
       const selectedOffices = getSelectedOffices();
+      console.log("Selected offices: ", selectedOffices);
       const officeIds = selectedOffices.map(office => office.OrgUnitID);
 
       await loadCustomers({ salesOfficesIDs: officeIds.join(',') }).then(renderCustomers);
@@ -267,6 +294,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById("btnToggleSelected").textContent = "Clientes Selecionados";
 
       closeOfficesModal();
+
+      await loadRepresentatives(selectedOffices);
 
     } finally {
       loader.classList.add("hidden");
@@ -328,13 +357,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       var employeeList = data;
 
-       const isTradeMKT =
+      const isTradeMKT =
         state.currentUserRoles?.some(
           role =>
             role.BusinessRoleID === "TRADE_MARKETING"
         )
-      
-      if(isTradeMKT) {
+
+      if (isTradeMKT) {
         const tradePromotors = data.filter(employee =>
           employee.EmployeeUserBusinessRoleAssignment?.some(
             role => role.BusinessRoleID === "PROMOTOR_TRADE"
@@ -365,9 +394,49 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById("employeesModal").classList.add("hidden");
   });
 
+  document.addEventListener("click", ev => {
+    const btn = ev.target.closest(".select-representative");
+    if (!btn) return;
+
+    const inputEquipe = document.getElementById("f_equipe");
+
+    if (inputEquipe) {
+      inputEquipe.value = btn.dataset.name || "";
+      inputEquipe.dataset.id = btn.dataset.id || "";
+    }
+
+    document.getElementById("representativesModal").classList.add("hidden");
+
+    applyFiltersAndRender(state.showOnlySelected);
+  });
+
   document.querySelectorAll(".closeEmployeesModal").forEach(el => {
     el.addEventListener("click", () => {
       document.getElementById("employeesModal").classList.add("hidden");
+    });
+  });
+
+
+  document.getElementById("f_equipe")?.addEventListener("click", () => {
+    const modal = document.getElementById("representativesModal");
+    const tbody = document.querySelector("#representativesTable tbody");
+    const searchInput = document.getElementById("representativeSearch");
+
+    modal.classList.remove("hidden");
+
+    if (searchInput) searchInput.value = "";
+
+    if (!window._allRepresentatives || !window._allRepresentatives.length) {
+      tbody.innerHTML = `<tr><td colspan="2">Nenhum registro encontrado</td></tr>`;
+      return;
+    }
+
+    renderRepresentativesTable(window._allRepresentatives);
+  });
+
+  document.querySelectorAll(".closeRepresentativesModal").forEach(el => {
+    el.addEventListener("click", () => {
+      document.getElementById("representativesModal").classList.add("hidden");
     });
   });
 
@@ -380,6 +449,28 @@ document.addEventListener('DOMContentLoaded', async () => {
     );
 
     renderEmployeesTable(filtered);
+  });
+
+
+
+
+  document.getElementById("representativeSearch")?.addEventListener("input", ev => {
+    const term = ev.target.value.toLowerCase().trim();
+
+    const filtered = (window._allRepresentatives || []).filter(rep => {
+      const name =
+        rep.OrgUnitID || "";
+
+      const id =
+        rep.OrgUnitName || "";
+
+      return (
+        name.toLowerCase().includes(term) ||
+        String(id).toLowerCase().includes(term)
+      );
+    });
+
+    renderRepresentativesTable(filtered);
   });
 
   let listFieldsName = ['f_nome', 'f_status', 'f_cidade', 'f_cnpj', 'f_idsap', 'f_equipe', 'f_pin', 'f_estado'];

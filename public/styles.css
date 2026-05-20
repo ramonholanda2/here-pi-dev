@@ -1092,6 +1092,10 @@ textarea:focus {
     align-items: end;
 }
 
+#f_equipe{
+    cursor: pointer;
+}
+
 .filter-field label {
     display: block;
     font-size: 12px;

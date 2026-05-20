@@ -3,7 +3,7 @@ const path = require('path');
 const app = express();
 const PORT = process.env.PORT || 8080;
 const cors = require('cors');
-const { getCustomers, getEmployeeInfo, createRoute, getRedirectUrl, getSalesOffices, getRedirectSalesCloudURL, getAllEmployees, getRolesByEmployee } = require('./services/services');
+const { getCustomers, getEmployeeInfo, createRoute, getRedirectUrl, getSalesOffices, getRedirectSalesCloudURL, getAllEmployees, getRolesByEmployee, getSalesGroupByOffices } = require('./services/services');
 
 const hasVcap = !!process.env.VCAP_SERVICES;
 console.log("Is Env CF: ", hasVcap)
@@ -21,6 +21,12 @@ app.use("/public", cors(), express.static(path.join(__dirname, 'public')));
 
 app.get('/', cors(), (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+app.get('/api/here/config', (req, res) => {
+  res.json({
+    apiKey: process.env.HERE_API_KEY
+  });
 });
 
 app.post('/api/rotas', async (req, res, next) => {
@@ -54,6 +60,16 @@ app.get('/api/empregados', async (req, res, next) => {
   try {
     const employees = await getAllEmployees();
     return res.json(employees);
+  } catch (error) {
+    next(error);
+  }
+})
+
+app.get('/api/representantes', async (req, res, next) => {
+  console.log("Recebendo requisição para representantes com query", req.query);
+  try {
+    const salesGroups = await getSalesGroupByOffices(req.query.salesOfficesIDs);
+    return res.json(salesGroups);
   } catch (error) {
     next(error);
   }

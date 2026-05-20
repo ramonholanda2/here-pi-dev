@@ -45,11 +45,23 @@ export async function openFormRoute(state) {
     )
 
   if (isSupervisor) {
+
+    const typeVisit = document.getElementById('routeTypeVisit')
+    
+    console.log("opções antes", [...typeVisit.options].map(o => o.value))
+
+    const allowedValues = ["Z10"];
+    
+     [...typeVisit.options].forEach(option => {
+      if (allowedValues.includes(option.value)) {
+        option.remove();
+      }
+    });
+
     const routeOwnerInput = document.getElementById("routeOwner");
     routeOwnerInput.setAttribute("disabled", true);
     routeOwnerInput.style.pointerEvents = "none";
 
-    const typeVisit = document.getElementById('routeTypeVisit')
     typeVisit.value = "Z01";
     typeVisit.classList.remove("field-error")
   } else {
@@ -60,10 +72,16 @@ export async function openFormRoute(state) {
 
   if(isTradeMarketing) {
     const typeVisit = document.getElementById('routeTypeVisit')
+    const allowedValues = ["Z08", "Z09", "Z10"];
+
+     [...typeVisit.options].forEach(option => {
+      if (!allowedValues.includes(option.value)) {
+        option.remove();
+      }
+    });
+
     typeVisit.value = "Z08";
     typeVisit.classList.remove("field-error")
-    typeVisit.setAttribute("disabled", true);
-    typeVisit.style.pointerEvents = "none";
   }
 
   const tableTitle = document.getElementById('section-title');

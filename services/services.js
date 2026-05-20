@@ -95,7 +95,7 @@ async function getSalesOffices(queryOptions) {
     + "&$expand=OrganisationalUnit,OrganisationalUnit/OrganisationalUnitNameAndAddress&$select=OrganisationalUnitID,OrganisationalUnit/OrganisationalUnitNameAndAddress/Name"
     + "&$format=json";
 
-  console.log('pathAllOffices', pathAllOffices);
+  
 
   const destination = await getDestination({ destinationName: "SALES_CLOUD" });
   const allOffices = await executeHttpRequest(
@@ -146,7 +146,7 @@ async function findOrganisationalUnitEmployees(businessPartnerId, onlyAndNamesID
       ).values()
     );
 
-    console.log("ids", ids)
+    
     return ids;
 
   } catch (err) {
@@ -157,7 +157,7 @@ async function findOrganisationalUnitEmployees(businessPartnerId, onlyAndNamesID
 
 
 async function findCustomersBySalesOffice(orgUnitIds = []) {
-  console.log("orgunit ids: ", orgUnitIds);
+  
   if (!orgUnitIds.length) return [];
 
   const base = process.env.CUSTOMER_ODATA_PATH;
@@ -212,7 +212,7 @@ async function queryByField(base, field, ids) {
       .join(' or ');
 
     const url = `${base}?$format=json&$filter=${encodeURI(filter)}&$top=99999`;
-    console.log(`[queryByField] ${field}:`, url);
+    
 
     const destination = await getDestination({ destinationName: "SALES_CLOUD" });
     const response = await executeHttpRequest(destination, { method: "GET", url });
@@ -403,6 +403,28 @@ async function getAllEmployees() {
   return employees
 }
 
+async function getSalesGroupByOffices(salesOfficesIDs) {
+  
+  console.log("getSalesGroupByOffices salesOfficesIDs: ", JSON.stringify(salesOfficesIDs));
+
+  const filterOrgQuery = salesOfficesIDs.split(",")
+    .map(id => `ParentOrgUnitID eq '${String(id).replace(/'/g, "''")}'`)
+    .join(' or ');
+
+  const url = `/sap/c4c/odata/cust/v1/orgunit_parent_hierarchy/OrganisationalUnitCollection?$format=json&$filter=${encodeURI(filterOrgQuery)}&$top=99999`;
+
+  const destination = await getDestination({ destinationName: "SALES_CLOUD" });
+  const response = await executeHttpRequest(
+    destination,
+    { method: "GET", url: url }
+  );
+
+  console.log(response?.data);
+
+  const salesGroups = response?.data?.d?.results || [];
+  return salesGroups
+}
+
 
 export {
   getEmployeeInfo,
@@ -412,5 +434,6 @@ export {
   getSalesOffices,
   getRedirectSalesCloudURL,
   getAllEmployees,
-  getRolesByEmployee
+  getRolesByEmployee,
+  getSalesGroupByOffices
 }
