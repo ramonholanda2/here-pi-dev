@@ -114,7 +114,7 @@ export function createClusterLayer(customers, state) {
         }
 
         const { id, title } = point.getData();
-        const url = `${state.salesCloudURL}/sap/public/byd/runtime?bo_ns=http://sap.com/thingTypes&bo=COD_GENERIC&node=Root&operation=OnExtInspect&param.InternalID=${id}&param.Type=COD_ACCOUNT_TT&sapbyd-agent=TAB`;
+        const url = `https://${state.salesCloudURL}/sap/public/byd/runtime?bo_ns=http://sap.com/thingTypes&bo=COD_GENERIC&node=Root&operation=OnExtInspect&param.InternalID=${id}&param.Type=COD_ACCOUNT_TT&sapbyd-agent=TAB`;
 
         state.ui.addBubble(
             new H.ui.InfoBubble(marker.getGeometry(), {

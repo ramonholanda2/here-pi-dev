@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       panel.id = 'sidebarCollapsedControls';
       panel.innerHTML = `
       <button id="btnExpandSidebar" title="Mostrar painel">▶</button>
-      <button id="btnShowAll" title="Clientes do escritório">🏢</button>
+      <button id="btnShowAll" title="Todos os clientes">🏢</button>
       <button id="btnShowSelected" title="Clientes selecionados">✓</button>
     `;
       map.appendChild(panel);
@@ -60,7 +60,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       document.getElementById('btnShowAll').addEventListener('click', () => {
         if (state.showOnlySelected) {
-          showToast('Mostrando clientes do escritório.', 'success');
+          showToast('Mostrando todos os clientes.', 'success');
           toggleShowSelected(state);
           document.getElementById('btnToggleSelected').textContent = 'Clientes Selecionados';
         }
@@ -70,7 +70,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         if (!state.showOnlySelected) {
           showToast('Mostrando clientes selecionados.', 'success');
           toggleShowSelected(state);
-          document.getElementById('btnToggleSelected').textContent = 'Clientes do escritório';
+          document.getElementById('btnToggleSelected').textContent = 'Todos os clientes';
         }
       });
 
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     const panel = document.createElement('div');
     panel.id = 'sidebarCollapsedControls';
     panel.innerHTML = `
-    <button id="btnShowAll" title="Clientes do escritório">🏢</button>
+    <button id="btnShowAll" title="Todos os clientes">🏢</button>
     <button id="btnShowSelected" title="Clientes selecionados">✓</button>
     <button id="btnExpandSidebar" title="Mostrar painel">▶</button>
   `;
@@ -102,7 +102,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     document.getElementById('btnShowAll').addEventListener('click', () => {
       if (state.showOnlySelected) {
-        showToast('Mostrando clientes do escritório.', 'success');
+        showToast('Mostrando todos os clientes.', 'success');
         toggleShowSelected(state);
         document.getElementById('btnToggleSelected').textContent = 'Clientes Selecionados';
       }
@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!state.showOnlySelected) {
         showToast('Mostrando clientes selecionados.', 'success');
         toggleShowSelected(state);
-        document.getElementById('btnToggleSelected').textContent = 'Clientes do escritório';
+        document.getElementById('btnToggleSelected').textContent = 'Todos os clientes';
       }
     });
   }
@@ -121,7 +121,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   async function loadRepresentatives(salesOffices) {
     console.log("loadRepresentatives salesOffices: ", salesOffices);
-    if(!salesOffices) {
+    if (!salesOffices) {
       window._allRepresentatives = []
     }
 
@@ -133,9 +133,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
       });
 
-      let representativeList = data || [];
+      let representatives = [];
+      if (salesOffices?.length > 0) {
+        for (let i = 0; i < salesOffices.length; i++) {
+          const rep = salesOffices[i];
+          if (rep.SalesGroupIndicator) {
+            const REPRESENTATIVE = {
+              OrgUnitID: rep.OrgUnitID,
+              OrgUnitName: rep.Name,
+              AddressSnapshotDisplayName: rep.AddressSnapshotDisplayName,
+            }
+            representatives.push(REPRESENTATIVE);
+          }
+        }
+        data.push(...representatives);
 
-      window._allRepresentatives = representativeList;
+        const representativeList = [
+          ...new Map(
+            [...data, ...representatives].map(rep => [rep.OrgUnitID, rep])
+          ).values()
+        ].filter(rep => rep?.AddressSnapshotDisplayName?.[0]?.FirstLineName);
+
+        console.log("Representatives: ", representativeList);
+
+        window._allRepresentatives = representativeList;
+
+      }
     } catch (error) {
       console.log("Erro ao carregar representantes", error);
       window._allRepresentatives = [];
@@ -154,7 +177,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       : "Selecionar Escritórios";
 
     btnOffices.onclick = () => openOfficesModal(salesOffices.haveOfficesByEmployee, salesOffices.offices);
-    if(salesOffices.haveOfficesByEmployee) {
+    if (salesOffices.haveOfficesByEmployee) {
       await loadRepresentatives(salesOffices.offices);
     }
 
@@ -274,7 +297,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   document.getElementById("btnToggleSelected").onclick = () => {
     toggleShowSelected(state);
 
-    document.getElementById("btnToggleSelected").textContent = state.showOnlySelected ? "Clientes do escritório" : "Clientes Selecionados";
+    document.getElementById("btnToggleSelected").textContent = state.showOnlySelected ? "Todos os clientes" : "Clientes Selecionados";
   };
 
 
@@ -399,10 +422,16 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (!btn) return;
 
     const inputEquipe = document.getElementById("f_equipe");
+    const inputEquipePF = document.getElementById("f_equipe_pf");
 
     if (inputEquipe) {
-      inputEquipe.value = btn.dataset.name || "";
-      inputEquipe.dataset.id = btn.dataset.id || "";
+      inputEquipe.value = btn.dataset.id || "";
+      inputEquipe.dataset.id = btn.dataset.name || "";
+    }
+
+    if (inputEquipePF) {
+      inputEquipePF.value = btn.dataset.name || "";
+      inputEquipePF.dataset.id = btn.dataset.id || "";
     }
 
     document.getElementById("representativesModal").classList.add("hidden");
@@ -417,7 +446,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   });
 
 
-  document.getElementById("f_equipe")?.addEventListener("click", () => {
+  document.getElementById("f_equipe_pf")?.addEventListener("click", () => {
     const modal = document.getElementById("representativesModal");
     const tbody = document.querySelector("#representativesTable tbody");
     const searchInput = document.getElementById("representativeSearch");
@@ -464,16 +493,19 @@ document.addEventListener('DOMContentLoaded', async () => {
       const id =
         rep.OrgUnitName || "";
 
-      return (
-        name.toLowerCase().includes(term) ||
-        String(id).toLowerCase().includes(term)
-      );
+      const idPF = rep?.AddressSnapshotDisplayName?.[0]?.FirstLineName || "";
+        return (
+          name.toLowerCase().includes(term) ||
+          String(id).toLowerCase().includes(term) ||
+          idPF.toLowerCase().includes(term)
+        );
     });
+
 
     renderRepresentativesTable(filtered);
   });
 
-  let listFieldsName = ['f_nome', 'f_status', 'f_cidade', 'f_cnpj', 'f_idsap', 'f_equipe', 'f_pin', 'f_estado'];
+  let listFieldsName = ['f_nome', 'f_status', 'f_cidade', 'f_cnpj', 'f_idsap', 'f_equipe', 'f_equipe_pf', 'f_pin', 'f_estado'];
 
   listFieldsName.forEach(id => {
     const el = document.getElementById(id);

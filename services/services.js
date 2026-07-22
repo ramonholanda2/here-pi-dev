@@ -411,8 +411,9 @@ async function getSalesGroupByOffices(salesOfficesIDs) {
     .map(id => `ParentOrgUnitID eq '${String(id).replace(/'/g, "''")}'`)
     .join(' or ');
 
-  const url = `/sap/c4c/odata/cust/v1/orgunit_parent_hierarchy/OrganisationalUnitCollection?$format=json&$filter=${encodeURI(filterOrgQuery)}&$top=99999`;
+  const url = `/sap/c4c/odata/cust/v1/orgunit_parent_hierarchy/OrganisationalUnitCollection?$format=json&$filter=${encodeURI(filterOrgQuery)}&$expand=OrganisationalUnitCurrentEmployeeAssignment,AddressSnapshotDisplayName&$top=99999`;
 
+  console.log(url)
   const destination = await getDestination({ destinationName: "SALES_CLOUD" });
   const response = await executeHttpRequest(
     destination,

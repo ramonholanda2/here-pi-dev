@@ -4,6 +4,12 @@ import { clearRoute } from './routing.js';
 import { showToast } from './util.js';
 
 export async function openFormRoute(state) {
+
+  console.log("state.polygonSelectionMode", state.currentPolygon)
+  if (state.currentPolygon != null) {
+      document.dispatchEvent(new CustomEvent('polygon:selectClients'));
+  }
+
   const customers = getSelectedClients(state);
 
   if (customers.length === 0) {
@@ -37,23 +43,23 @@ export async function openFormRoute(state) {
   const isSupervisor =
     state.currentUserRoles?.some(
       role =>
-        role.BusinessRoleID === "SUPERVISOR_COMERCIAL"
+        role.BusinessRoleID === "SUP_COMERCIAL"
     )
   const isTradeMarketing = state.currentUserRoles?.some(
-      role =>
-        role.BusinessRoleID === "TRADE_MARKETING"
-    )
+    role =>
+      role.BusinessRoleID === "TRADE_MARKETING"
+  )
 
   if (isSupervisor) {
 
     const typeVisit = document.getElementById('routeTypeVisit')
-    
+
     console.log("opções antes", [...typeVisit.options].map(o => o.value))
 
-    const allowedValues = ["Z10"];
-    
-     [...typeVisit.options].forEach(option => {
-      if (allowedValues.includes(option.value)) {
+    const notAllowedValues = ["Z08"];
+
+    [...typeVisit.options].forEach(option => {
+      if (notAllowedValues.includes(option.value)) {
         option.remove();
       }
     });
@@ -70,11 +76,11 @@ export async function openFormRoute(state) {
     routeOwnerInput.style.cursor = "pointer";
   }
 
-  if(isTradeMarketing) {
+  if (isTradeMarketing) {
     const typeVisit = document.getElementById('routeTypeVisit')
     const allowedValues = ["Z08", "Z09", "Z10"];
 
-     [...typeVisit.options].forEach(option => {
+    [...typeVisit.options].forEach(option => {
       if (!allowedValues.includes(option.value)) {
         option.remove();
       }
@@ -179,7 +185,9 @@ export async function saveRoute(state) {
     StartTime: "PT08H00M00S",
     EndTime: "PT09H00M00S",
     PreparationTime: "PT1H",
-    VisitTypeCode: typeVisit.value
+    VisitTypeCode: typeVisit.value,
+    zUnidadeDuracao_KUT: "Hora",
+    zTempoDuracao_KUT: "1"
   }));
 
 
@@ -191,19 +199,25 @@ export async function saveRoute(state) {
     Name: nameRoute || "Nova Rota",
     RouteTypeCode: "2",
     StartDate: startDateFormatted,
+    EndDate: startDateFormatted,
     ...excludeDays,
     DefaultStartTime: "PT08H00M00S",
     DefaultPreparationTime: "PT1H",
     DefaultDuration: "PT1H",
     Status: "2",
     ProcessingStatus: "1",
-    VisitTypeCode: typeVisit.value,
+    /* VisitTypeCode: typeVisit.value, */
     OwnerPartyID: ownerID,
     OrganizerPartyID: employeeID,
+    AutomaticResequencing: true,
+    //RouteCategoryCode: "P1D",
     RouteAccount: routeAccounts,
     Z_TipoVisita_KUT: `${typeVisit.value} - ${typeVisitDesc}`,
     ...notesObject
   };
+
+
+  
   const loader = document.getElementById("LoadingModal");
   loader.classList.remove("hidden");
 
@@ -215,9 +229,10 @@ export async function saveRoute(state) {
         const timeMessageMS = 4000;
         showToast('Rota criada com sucesso.', 'success', timeMessageMS);
 
-        const url = `/api/rotas/redirecionar/${route.data.ObjectID}`;
-        const response = await axios.get(url);
-        const linkRouteCreated = decodeURIComponent(response.data);
+        const url = `https://${state.salesCloudURL}/sap/byd/nav?bo=ROUTE_TT&nav_mode=TI&param.Key=${route.data.ObjectID}`
+        //const url = `/api/rotas/redirecionar/${route.data.ObjectID}`;
+        //const response = await axios.get(url);
+        const linkRouteCreated = decodeURIComponent(url);
         window.top.location.href = linkRouteCreated;
 
       })

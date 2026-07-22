@@ -62,20 +62,20 @@ export function renderRepresentativesTable(list) {
     const repName =
       rep.OrgUnitName || "";
 
+    const repNamePF = rep?.AddressSnapshotDisplayName?.[0]?.FirstLineName || "";
+
     const tr = document.createElement("tr");
-
     tr.innerHTML = `
-      <td class="employee-name">${repName}</td>
-      <td>
-        <button
-          class="select-representative"
-          data-id="${repId}"
-          data-name="${repName}">
-          Selecionar
-        </button>
-      </td>
-    `;
-
+        <td class="employee-name">${repNamePF}</td>
+        <td>
+          <button
+            class="select-representative"
+            data-id="${repName}"
+            data-name="${repNamePF}">
+            Selecionar
+          </button>
+        </td>
+      `;
     tbody.appendChild(tr);
   });
 }
@@ -181,6 +181,7 @@ export function clearFilters() {
     'f_cnpj',
     'f_idsap',
     'f_equipe',
+    'f_equipe_pf',
     'f_pin'
   ].forEach(id => {
     const el = document.getElementById(id);
@@ -232,7 +233,7 @@ export function renderCustomers() {
 
   renderCustomerList(state, filtered);
 
-  if(filtered.length === state.allCustomers.length && state.allCustomers.length > 0) {
+  if (filtered.length === state.allCustomers.length && state.allCustomers.length > 0) {
     showToast(`${state.allCustomers.length} clientes foram carregados.`, 'success');
   }
 

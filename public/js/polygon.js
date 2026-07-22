@@ -37,6 +37,7 @@ export function disablePolygonSelection(state) {
   hidePolygonInstructions();
 }
 
+
 export function onMapClick(state, evt) {
   if (!state.polygonSelectionMode || state.currentPolygon) return;
   evt.stopPropagation();

@@ -66,7 +66,6 @@ app.get('/api/empregados', async (req, res, next) => {
 })
 
 app.get('/api/representantes', async (req, res, next) => {
-  console.log("Recebendo requisição para representantes com query", req.query);
   try {
     const salesGroups = await getSalesGroupByOffices(req.query.salesOfficesIDs);
     return res.json(salesGroups);

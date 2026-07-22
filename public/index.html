@@ -78,9 +78,14 @@
               <input type="text" id="f_cidade" name="cidade" autocomplete="on" />
             </div>
 
-            <div class="filter-field">
+            <div class="filter-field" style="display: none;">
               <label for="f_equipe">Representante</label>
               <input type="text" id="f_equipe" readonly name="equipeVendas" autocomplete="on" />
+            </div>
+
+            <div class="filter-field">
+              <label for="f_equipe_pf">Representante</label>
+              <input type="text" id="f_equipe_pf" readonly name="equipeVendaspf" autocomplete="on" />
             </div>
 
             <div class="filter-field">
@@ -398,7 +403,8 @@
         <table id="representativesTable" class="horizon-table">
           <thead>
             <tr>
-              <th class="employee-name-th">Nome</th>
+             <!--  <th class="employee-name-th">Equipe de Vendas</th> -->
+              <th class="employee-name-th">Representante</th>
               <th></th>
             </tr>
           </thead>

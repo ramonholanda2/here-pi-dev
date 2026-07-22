@@ -1096,6 +1096,10 @@ textarea:focus {
     cursor: pointer;
 }
 
+#f_equipe_pf{
+    cursor: pointer;
+}
+
 .filter-field label {
     display: block;
     font-size: 12px;

@@ -14,9 +14,10 @@ export async function loadCustomers(parameters) {
   try {
 
     const { data: urlSalesCloud } = await axios.get("/api/salescloud/url");
-    state.salesCloudURL = urlSalesCloud;
-
     const params = new URLSearchParams(window.location.search);
+    const host = params.get('host');
+    state.salesCloudURL = host;
+
     const employeeID = params.get('employeeID');
 
     const { data: roles } = await axios.get(`/api/funcoes/${employeeID}`);
